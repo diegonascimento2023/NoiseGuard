@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoramento de Ruído</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            transition: background-color 0.5s ease;
+        }
+        h2 {
+            color: #fff;
+        }
+        #nivelRuido {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #mensagem {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            color: #fff;
+        }
+        #imagem {
+            margin-top: 20px;
+            width: 200px;
+            display: none; /* Esconde a imagem por padrão */
+        }
+        #grafico {
+            width: 80%;
+            max-width: 600px;
+            margin: auto;
+        }
+    </style>
+    <script>
+        async function atualizarDados() {
+            const response = await fetch("https://api.thingspeak.com/channels/2840125/feeds.json?results=30");
+            const data = await response.json();
+            
+            const feeds = data.feeds;
+            const valores = feeds.map(feed => parseFloat(feed.field1));
+            const tempos = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString());
+
+            const valorAtual = valores[valores.length - 1];
+
+            // Atualiza o valor do ruído
+            document.getElementById("nivelRuido").innerText = valorAtual + " dB";
+
+            // Atualiza a interface com base no valor do ruído
+            atualizarInterface(valorAtual);
+
+            // Atualiza o gráfico
+            atualizarGrafico(tempos, valores);
+        }
+
+        function atualizarInterface(dB) {
+            let corFundo = "#28a745"; // Verde padrão
+            let mensagem = "Ambiente Silencioso";
+            let mostrarImagem = false;
+
+            if (dB > 70 && dB <= 80) {
+                corFundo = "#ffc107"; // Amarelo
+                mensagem = "Ruído Moderado. POR FAVOR, FAZER SILÊNCIO!";
+                mostrarImagem = true;
+            } else if (dB > 80) {
+                corFundo = "#dc3545"; // Vermelho
+                mensagem = "Ruído Alto. POR FAVOR, FAZER SILÊNCIO!";
+                mostrarImagem = true;
+            }
+
+            // Mudar cor de fundo e exibir mensagem
+            document.body.style.backgroundColor = corFundo;
+            document.getElementById("mensagem").innerText = mensagem;
+
+            // Mostrar ou esconder imagem de "Silêncio"
+            document.getElementById("imagem").style.display = mostrarImagem ? "block" : "none";
+        }
+
+        function atualizarGrafico(labels, valores) {
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+
+            const ctx = document.getElementById("graficoCanvas").getContext("2d");
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Nível de Ruído (dB)",
+                        data: valores,
+                        borderColor: "black",
+                        backgroundColor: "rgba(0, 0, 0, 0.2)",
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: false }
+                    }
+                }
+            });
+        }
+
+        setInterval(atualizarDados, 5000); // Atualiza a cada 5 segundos
+    </script>
+</head>
+<body onload="atualizarDados()">
+    <h2>Nível de Ruído Atual</h2>
+    <p id="nivelRuido">Carregando...</p>
+    
+    <h2 id="mensagem">Carregando...</h2>
+    <img id="imagem" src="https://cdn-icons-png.flaticon.com/512/786/786397.png" alt="Silêncio">
+    
+    <h2>Histórico de Ruído</h2>
+    <canvas id="graficoCanvas"></canvas>
+</body>
+</html>
