@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoramento de Ruído</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -88,23 +89,40 @@
         }
 
         async function atualizarDados() {
-            const response = await fetch("https://api.thingspeak.com/channels/2840125/feeds.json?results=30");
-            const data = await response.json();
-            
-            const feeds = data.feeds;
-            const valores = feeds.map(feed => parseFloat(feed.field1));
-            const tempos = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString());
+            try {
+                const response = await fetch("https://api.thingspeak.com/channels/2840125/feeds.json?results=30");
+                const data = await response.json();
 
-            const valorAtual = valores[valores.length - 1];
+                if (!data.feeds || data.feeds.length === 0) {
+                    throw new Error("Sem dados");
+                }
 
-            document.getElementById("nivelRuido").innerHTML = `<i>🔊</i> <span>${valorAtual} dB</span>`;
+                const feeds = data.feeds;
+                const valores = feeds.map(feed => parseFloat(feed.field1));
+                const tempos = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString());
+                const dataHoraUltimoDado = new Date(feeds[feeds.length - 1].created_at);
 
-            atualizarInterface(valorAtual);
-            atualizarGrafico(tempos, valores);
+                const agora = new Date();
+                const diferencaMinutos = (agora - dataHoraUltimoDado) / 60000;
+
+                if (isNaN(valores[valores.length - 1]) || diferencaMinutos > 5) {
+                    throw new Error("Dados desatualizados");
+                }
+
+                document.getElementById("nivelRuido").innerHTML = `<i>🔊</i> <span>${valores[valores.length - 1]} dB</span>`;
+
+                atualizarInterface(valores[valores.length - 1]);
+                atualizarGrafico(tempos, valores);
+            } catch (error) {
+                console.error("Erro ao obter dados:", error);
+                document.getElementById("nivelRuido").innerHTML = `<span style="color: yellow;">⚠️ Sem dados atualizados</span>`;
+                document.body.style.background = "linear-gradient(135deg, #555, #777)";
+                document.getElementById("mensagem").innerHTML = "Aguardando dados atualizados...";
+            }
         }
 
         function atualizarInterface(dB) {
-            let corFundo = "linear-gradient(135deg, #1b5e20, #2e7d32)"; 
+            let corFundo = "linear-gradient(135deg, #1b5e20, #2e7d32)";
             let mensagem = "Ambiente Silencioso";
 
             if (dB > 52 && dB < 70) {
