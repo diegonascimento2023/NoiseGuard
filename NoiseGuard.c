@@ -1,8 +1,16 @@
-/*AVISOS PARA A EXECUÇÃO DO PROJETO
-- Substituir o usuário e senha no arquivo wifi.h que está dentro da pas inc
-- Ao rodar o codigo lembrar de abrir o serial
-- O link para ver os dados no ThingSpeak é: https://thingspeak.mathworks.com/channels/2840125
-- O link para ver a página web é: https://diegonascimento2023.github.io/NoiseGuard/ */ 
+/* 
+ * -------------------------
+ * AVISOS PARA A EXECUÇÃO DO PROJETO
+ * -------------------------
+ * 1. Substituir o usuário e senha no arquivo wifi.h que está dentro da pasta "inc".
+ * 2. Ao rodar o código, lembrar de abrir o serial.
+ * 3. O link para ver os dados no ThingSpeak é:
+ *    https://thingspeak.mathworks.com/channels/2840125
+ * 4. O link para ver a página web é:
+ *    https://diegonascimento2023.github.io/NoiseGuard/
+ * 5. O link do repositório GitHub é:
+ *    https://github.com/diegonascimento2023/NoiseGuard
+ */
 
 #include "inc/adc_dma.h"    // Inclusão de cabeçalhos para configuração do ADC com DMA
 #include "inc/buzzer_led.c" // Inclusão de funções de controle de LED e buzzer
@@ -46,7 +54,7 @@ int main()
 
     // Configura a fila do ADC para capturar dados com DMA
     adc_fifo_setup(true, true, 1, false, false);
-    adc_set_clkdiv(96.0f); // Define a divisão de clock para o ADC (ajustando a velocidade de amostragem)
+    adc_set_clkdiv(96.0f); // Define a divisão de clock para o ADC (ajustando a velocidade de amostragem, aumentando a precisão)
 
     // Configuração do DMA para transferência dos dados do ADC
     dma_channel = dma_claim_unused_channel(true);                 // Solicita um canal de DMA disponível
@@ -101,7 +109,7 @@ int main()
             // Atualiza o display, LEDs e buzzer com base na média de ruído calculada
             if (media_dB <= 52)
             {
-                zera_display();         // Limpa o display
+                zera_display();         // Limpa o display OLED, apagando qualquer informação visual exibida
                 ambiente_silencioso();  // Exibe mensagem de "Ambiente Silencioso" no display
                 led_green();            // Acende o LED verde
                 buzzer_off(BUZZER_PIN); // Desliga o buzzer
@@ -109,7 +117,7 @@ int main()
             }
             else if (media_dB > 52 && media_dB < 70)
             {
-                zera_display();                          // Limpa o display
+                zera_display();                          // Limpa o display OLED
                 led_yellow();                            // Acende o LED amarelo
                 pedindo_silencio();                      // Exibe mensagem de "Fazer Silêncio" no display
                 iniciar_buzzer(BUZZER_PIN, 1000, false); // Liga o buzzer por 1 segundo
@@ -117,7 +125,7 @@ int main()
             }
             else
             {
-                zera_display();                          // Limpa o display
+                zera_display();                          // Limpa o display OLED
                 led_red();                               // Acende o LED vermelho
                 pedindo_silencio();                      // Exibe mensagem de "Fazer Silêncio" no display
                 iniciar_buzzer(BUZZER_PIN, 13000, true); // Liga o buzzer intermitente por 13 segundos
