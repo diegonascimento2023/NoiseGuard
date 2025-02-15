@@ -1,58 +1,77 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
+    <!-- Definição do charset e meta tags para responsividade -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Título da página exibido na aba do navegador -->
     <title>Monitoramento de Ruído</title>
+
+    <!-- Ícone da página -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- Inclusão da biblioteca Chart.js para gerar gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Estilos internos da página -->
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 10px;
-            background: linear-gradient(135deg, #1b5e20, #2e7d32);
-            color: white;
-            text-align: center;
-            transition: background 0.5s ease-in-out;
-            height: 90vh;
+            font-family: Arial, sans-serif; /* Define a fonte */
+            margin: 10px; /* Margem da página */
+            background: linear-gradient(135deg, #1b5e20, #2e7d32); /* Cor de fundo em gradiente */
+            color: white; /* Cor do texto */
+            text-align: center; /* Alinhamento do texto */
+            transition: background 0.5s ease-in-out; /* Transição suave ao alterar o fundo */
+            height: 90vh; /* Define a altura da tela */
         }
+
         .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex; /* Flexbox para layout responsivo */
+            justify-content: space-between; /* Espaço entre os itens */
+            align-items: center; /* Alinha os itens ao centro */
+            flex-wrap: wrap; /* Permite que os itens se reorganizem em várias linhas */
+            padding: 10px; /* Preenchimento interno */
+            background: rgba(0, 0, 0, 0.3); /* Fundo semitransparente */
+            border-radius: 10px; /* Bordas arredondadas */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra suave */
         }
+
+        /* Estilo do texto que exibe o nível de ruído */
         #nivelRuido {
             font-size: 28px;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out; /* Transição para efeito de hover */
         }
+
         #nivelRuido:hover {
-            transform: scale(1.1);
+            transform: scale(1.1); /* Efeito de aumentar o tamanho ao passar o mouse */
         }
+
         #nivelRuido span {
             font-size: 32px;
-            margin-left: 8px;
+            margin-left: 8px; /* Espaço entre o ícone e o texto */
         }
+
+        /* Estilo da mensagem */
         #mensagem {
             font-size: 40px;
             font-weight: bold;
             text-transform: uppercase;
             text-align: center;
-            flex-grow: 1;
-            animation: fadeIn 1s ease-in-out;
+            flex-grow: 1; /* Permite que o texto ocupe o espaço restante */
+            animation: fadeIn 1s ease-in-out; /* Animação de fade-in */
         }
+
         #mensagem span {
             color: red;
-            font-size: 44px;
+            font-size: 44px; /* Destaca a parte da mensagem com maior fonte */
         }
+
+        /* Estilo do container do gráfico */
         #graficoContainer {
             width: 80%;
             height: 400px;
@@ -62,24 +81,31 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+
+        /* Estilo para a data e hora exibidas na parte inferior da página */
         #dataHora {
             font-size: 14px;
             font-weight: bold;
-            position: fixed;
+            position: fixed; /* Posiciona fixo na parte inferior direita */
             bottom: 10px;
             right: 10px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1); /* Fundo semitransparente */
             padding: 5px 10px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
             display: inline-block;
         }
+
+        /* Animação para a entrada da mensagem */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+
+    <!-- Scripts da página -->
     <script>
+        // Função para atualizar a data e hora exibidas na página
         function atualizarDataHora() {
             const agora = new Date();
             const opcoes = { timeZone: 'America/Sao_Paulo', hour12: false };
@@ -88,39 +114,45 @@
             document.getElementById("dataHora").innerHTML = `📅 ${dataFormatada} | ⏰ ${horaFormatada}`;
         }
 
+        // Função para atualizar os dados do monitoramento de ruído
         async function atualizarDados() {
             try {
                 const response = await fetch("https://api.thingspeak.com/channels/2840125/feeds.json?results=30");
                 const data = await response.json();
 
+                // Verifica se os dados foram obtidos corretamente
                 if (!data.feeds || data.feeds.length === 0) {
                     throw new Error("Sem dados");
                 }
 
                 const feeds = data.feeds;
-                const valores = feeds.map(feed => parseFloat(feed.field1));
-                const tempos = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString());
-                const dataHoraUltimoDado = new Date(feeds[feeds.length - 1].created_at);
+                const valores = feeds.map(feed => parseFloat(feed.field1)); // Níveis de ruído
+                const tempos = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString()); // Horários
+                const dataHoraUltimoDado = new Date(feeds[feeds.length - 1].created_at); // Último horário registrado
 
                 const agora = new Date();
                 const diferencaMinutos = (agora - dataHoraUltimoDado) / 60000;
 
+                // Verifica se os dados são válidos
                 if (isNaN(valores[valores.length - 1]) || diferencaMinutos > 5) {
                     throw new Error("Dados desatualizados");
                 }
 
+                // Atualiza a interface com o último nível de ruído
                 document.getElementById("nivelRuido").innerHTML = `<i>🔊</i> <span>${valores[valores.length - 1]} dB</span>`;
 
+                // Atualiza a interface e o gráfico com os novos dados
                 atualizarInterface(valores[valores.length - 1]);
                 atualizarGrafico(tempos, valores);
             } catch (error) {
                 console.error("Erro ao obter dados:", error);
                 document.getElementById("nivelRuido").innerHTML = `<span style="color: yellow;">⚠️ Sem dados atualizados</span>`;
-                document.body.style.background = "linear-gradient(135deg, #555, #777)";
+                document.body.style.background = "linear-gradient(135deg, #555, #777)"; // Mudança de cor de fundo em caso de erro
                 document.getElementById("mensagem").innerHTML = "Aguardando dados atualizados...";
             }
         }
 
+        // Função para atualizar a interface com base no nível de ruído
         function atualizarInterface(dB) {
             let corFundo = "linear-gradient(135deg, #1b5e20, #2e7d32)";
             let mensagem = "Ambiente Silencioso";
@@ -137,24 +169,25 @@
             document.getElementById("mensagem").innerHTML = mensagem;
         }
 
+        // Função para atualizar o gráfico com os dados de ruído
         function atualizarGrafico(labels, valores) {
             if (window.myChart) {
-                window.myChart.destroy();
+                window.myChart.destroy(); // Destrói o gráfico anterior, se existir
             }
 
             const ctx = document.getElementById("graficoCanvas").getContext("2d");
             window.myChart = new Chart(ctx, {
-                type: 'line',
+                type: 'line', // Tipo de gráfico: linha
                 data: {
-                    labels: labels,
+                    labels: labels, // Rótulos no eixo x
                     datasets: [{
                         label: "Nível de Ruído (dB)",
-                        data: valores,
-                        borderColor: "#fff",
-                        backgroundColor: "rgba(255, 255, 255, 0.2)",
+                        data: valores, // Dados de ruído
+                        borderColor: "#fff", // Cor da linha
+                        backgroundColor: "rgba(255, 255, 255, 0.2)", // Cor de fundo da linha
                         borderWidth: 2,
-                        fill: true,
-                        pointBackgroundColor: "#fff"
+                        fill: true, // Preenchimento abaixo da linha
+                        pointBackgroundColor: "#fff" // Cor dos pontos de dados
                     }]
                 },
                 options: {
@@ -171,20 +204,24 @@
             });
         }
 
+        // Atualiza os dados e a hora a cada 5 segundos e 1 segundo, respectivamente
         setInterval(atualizarDados, 5000);
         setInterval(atualizarDataHora, 1000);
     </script>
 </head>
 <body onload="atualizarDados(); atualizarDataHora();">
+    <!-- Container que exibe o nível de ruído e mensagem -->
     <div class="container">
         <h2 id="nivelRuido"><i>🔊</i> <span>Carregando...</span></h2>
         <h2 id="mensagem">Carregando...</h2>
     </div>
 
+    <!-- Container para o gráfico -->
     <div id="graficoContainer">
         <canvas id="graficoCanvas"></canvas>
     </div>
 
+    <!-- Exibição da data e hora -->
     <div id="dataHora">Carregando...</div>
 </body>
 </html>
