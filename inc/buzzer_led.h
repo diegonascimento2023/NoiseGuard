@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 #include "hardware/pio.h"
+#include "inc/display.h"
+#include "pico/stdlib.h"
+#include "hardware/pwm.h"
+#include "hardware/clocks.h"
+#include "hardware/timer.h"
 
 // Biblioteca gerada pelo arquivo .pio durante compilação.
 #include "ws2818b.pio.h"
@@ -75,6 +80,12 @@ void buzzer_on_for_3_seconds(uint pin);
 
 // Função para ligar e desligar o buzzer intermitentemente
 void buzzer_toggle_intermittent(uint pin);
+
+// Função para iniciar o buzzer com a duração e o tipo de alternância (intermitente ou contínuo).
+void iniciar_buzzer(uint pin, uint32_t duracao, bool intermitente);
+
+// Atualiza o estado do buzzer, verificando se ele deve continuar ativado.
+void atualizar_buzzer(uint pin);
 
 
 #endif
