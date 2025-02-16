@@ -66,7 +66,7 @@ target_link_libraries(NoiseGuard
         hardware_pio
         hardware_clocks
         hardware_i2c
-        
+        hardware_timer
         )
 
 pico_add_extra_outputs(NoiseGuard)
