@@ -1,8 +1,5 @@
 #include "inc/buzzer_led.h"
-#include "inc/display.h"
-#include "pico/stdlib.h"
-#include "hardware/pwm.h"
-#include "hardware/clocks.h"
+
 
 // Definição do pino do LED e frequência do buzzer.
 #define LED_PIN 7
@@ -122,10 +119,11 @@ void buzzer_off(uint pin) {
     pwm_set_gpio_level(pin, 0); // Desativa o sinal PWM (duty cycle 0).
 }
 
+
 // Função para iniciar o buzzer com a duração e o tipo de alternância (intermitente ou contínuo).
 void iniciar_buzzer(uint pin, uint32_t duracao, bool intermitente) {
     buzzer.ativo = true; // Ativa o buzzer.
-    buzzer.tempo_inicio = to_ms_since_boot(get_absolute_time()); // Marca o tempo de início.
+    buzzer.tempo_inicio = time_us_64(); // Marca o tempo de início em microssegundos.
     buzzer.duracao_ms = duracao; // Define a duração do buzzer.
     buzzer.intermitente = intermitente; // Define se o buzzer será intermitente.
     buzzer.alternancias = 0; // Inicializa as alternâncias.
@@ -137,11 +135,11 @@ void iniciar_buzzer(uint pin, uint32_t duracao, bool intermitente) {
 void atualizar_buzzer(uint pin) {
     if (!buzzer.ativo) return; // Se o buzzer não estiver ativo, não faz nada.
 
-    uint32_t tempo_atual = to_ms_since_boot(get_absolute_time()); // Obtém o tempo atual.
+    uint64_t tempo_atual = time_us_64(); // Obtém o tempo atual em microssegundos.
 
-    // Se o buzzer for intermitente, alterna seu estado a cada 500ms.
+    // Se o buzzer for intermitente, alterna seu estado a cada 500ms (500000 microssegundos).
     if (buzzer.intermitente) {
-        if ((tempo_atual - buzzer.tempo_inicio) >= 500) {
+        if ((tempo_atual - buzzer.tempo_inicio) >= 500000) {
             buzzer.tempo_inicio = tempo_atual;
             buzzer.alternancias++; // Incrementa a alternância.
 
@@ -153,13 +151,13 @@ void atualizar_buzzer(uint pin) {
         }
 
         // Se o buzzer alcançou a duração, desliga-o.
-        if (buzzer.alternancias >= (buzzer.duracao_ms / 500)) {
+        if ((buzzer.alternancias * 500) >= buzzer.duracao_ms) {
             buzzer.ativo = false;
             pwm_set_gpio_level(pin, 0);
         }
     } else {
         // Se não for intermitente, desliga após a duração.
-        if ((tempo_atual - buzzer.tempo_inicio) >= buzzer.duracao_ms) {
+        if ((tempo_atual - buzzer.tempo_inicio) >= (buzzer.duracao_ms * 1000)) {
             buzzer.ativo = false;
             pwm_set_gpio_level(pin, 0);
         }
