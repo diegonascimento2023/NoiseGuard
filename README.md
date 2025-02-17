@@ -100,7 +100,7 @@ Após compilar, conecte a **BitDogLab** via USB e carregue o binário gerado no 
 
 O relatório técnico detalhado do **NoiseGuard**, contendo informações sobre metodologia, testes, resultados e conclusões, está disponível no arquivo abaixo:  
 
-📄 **[Relatório Completo](./Relatorio_Projeto_Final.pdf)**
+📄 **[Relatório Completo](./Relatorio.pdf)**
 
 ---
 
