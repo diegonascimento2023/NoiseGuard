@@ -106,7 +106,7 @@ O relatório técnico detalhado do **NoiseGuard**, contendo informações sobre 
 
 ## 📢 Demonstração  
 
-📹 **Vídeo de apresentação**: [YouTube Link] *(Adicione o link do vídeo aqui)*  
+📹 **Vídeo de apresentação**: [Clique aqui](https://drive.google.com/file/d/1wnk7-oAWgqICJOJuewhdt36QpY6qQEmw/view?usp=sharing)
 
 🌍 **Interface Web (Monitoramento Online)**: [Clique aqui](https://diegonascimento2023.github.io/NoiseGuard/)  
 
